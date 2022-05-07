@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\DTO\LowestPriceEnquiry;
+use App\Filter\PromotionsFilterInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,7 +14,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ProductsController extends AbstractController
 {
     #[Route('products/{id}/lowest-price', name: 'lowest-price', methods: 'POST')]
-    public function lowestPrice(Request $request, int $id, SerializerInterface $serializer): Response
+    public function lowestPrice(Request $request, int $id, SerializerInterface $serializer, PromotionsFilterInterface $promotionsFilter): Response
     {
         if ($request->headers->has('force_fail')) {
             return new JsonResponse(
@@ -22,30 +23,12 @@ class ProductsController extends AbstractController
             );
         }
 
-
-        // 1. Deserialize json data into a EnquiryDTO - Data Transfer Object
-
         $lowestPriceEnquiry = $serializer->deserialize($request->getContent(), LowestPriceEnquiry::class, 'json');
-        dd($lowestPriceEnquiry);
-        // 2. Pass Enquiry into a promotions filter
-            // the appropriate promotion will be applied
-        // 3. Return modified Enquiry, serialize it back into Json and send Json response
+        $modifiedEnquiry = $promotionsFilter->apply($lowestPriceEnquiry);
+        $responseContent = $serializer->serialize($modifiedEnquiry, 'json');
 
-        return new JsonResponse([
-            "quantity" => 4,
-            "request_location" => "LT",
-            "voucher_code" => "LT76183",
-            "request_date" => "2022-04-13",
-            "product_id" => $id,
-            'price' => 100,
-            'discounted_price' => 50,
-            'promotion_id' => 3,
-            'promotion_name' => 'Black Friday half price sale'
-        ], 200);
-
-
+        return new Response($responseContent, 200);
     }
-
 
     #[Route('/products/{id}/promotions', name: 'promotions', methods: 'GET')]
     public function promotions()
