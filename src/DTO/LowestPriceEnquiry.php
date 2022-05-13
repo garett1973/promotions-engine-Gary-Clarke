@@ -2,9 +2,14 @@
 
 namespace App\DTO;
 
+use App\Entity\Product;
+use Symfony\Component\Serializer\Annotation\Ignore;
+
 class LowestPriceEnquiry implements PromotionEnquiryInterface
 {
-    private ?int $productId;
+    #[Ignore]
+    private ?Product $product;
+
     private ?int $quantity;
     private ?string $requestLocation;
     private ?string $voucherCode;
@@ -15,19 +20,19 @@ class LowestPriceEnquiry implements PromotionEnquiryInterface
     private ?string $promotionName;
 
     /**
-     * @return int|null
+     * @return Product|null
      */
-    public function getProductId(): ?int
+    public function getProduct(): ?Product
     {
-        return $this->productId;
+        return $this->product;
     }
 
     /**
-     * @param int|null $productId
+     * @param Product|null $product
      */
-    public function setProductId(?int $productId): void
+    public function setProduct(?Product $product): void
     {
-        $this->productId = $productId;
+        $this->product = $product;
     }
 
     /**

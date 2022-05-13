@@ -3,18 +3,40 @@
 namespace App\Controller;
 
 use App\DTO\LowestPriceEnquiry;
+use App\Entity\Promotion;
 use App\Filter\PromotionsFilterInterface;
+use App\Repository\ProductRepository;
+use App\Service\Serializer\DTOSerializer;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+
 
 class ProductsController extends AbstractController
 {
+    private ProductRepository $productRepository;
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(
+        ProductRepository $productRepository,
+    EntityManagerInterface $entityManager
+    )
+    {
+        $this->productRepository = $productRepository;
+        $this->entityManager = $entityManager;
+    }
+
+
     #[Route('products/{id}/lowest-price', name: 'lowest-price', methods: 'POST')]
-    public function lowestPrice(Request $request, int $id, SerializerInterface $serializer, PromotionsFilterInterface $promotionsFilter): Response
+    public function lowestPrice(
+        Request $request,
+        int $id,
+        DTOSerializer $serializer,
+        PromotionsFilterInterface $promotionsFilter)
+    : Response
     {
         if ($request->headers->has('force_fail')) {
             return new JsonResponse(
@@ -24,10 +46,18 @@ class ProductsController extends AbstractController
         }
 
         $lowestPriceEnquiry = $serializer->deserialize($request->getContent(), LowestPriceEnquiry::class, 'json');
-        $modifiedEnquiry = $promotionsFilter->apply($lowestPriceEnquiry);
+
+        $product = $this->productRepository->find($id); // Add error handling for not found product
+
+        $lowestPriceEnquiry->setProduct($product);
+
+        $promotions = $this->entityManager->getRepository(Promotion::class)->findValidForProduct($product, date_create_immutable($lowestPriceEnquiry->getRequestDate())); // null handling if returned
+
+        $modifiedEnquiry = $promotionsFilter->apply($lowestPriceEnquiry, ...$promotions);
+
         $responseContent = $serializer->serialize($modifiedEnquiry, 'json');
 
-        return new Response($responseContent, 200);
+        return new Response($responseContent, 200, ['Content-Type' => 'application/json']);
     }
 
     #[Route('/products/{id}/promotions', name: 'promotions', methods: 'GET')]
