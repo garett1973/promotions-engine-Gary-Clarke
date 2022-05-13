@@ -162,6 +162,4 @@ class LowestPriceEnquiry implements PromotionEnquiryInterface
     {
         $this->promotionName = $promotionName;
     }
-
-
 }
