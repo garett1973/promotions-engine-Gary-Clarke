@@ -17,7 +17,6 @@ class DateRangeMultiplier implements PriceModifierInterface
         if (!($requestDate >= $from && $requestDate < $to)) {
             return $price * $quantity;
         }
-
         // (price * quantity) * promotion->getAdjustment()
         return $price * $quantity * $promotion->getAdjustment();
     }

@@ -8,7 +8,6 @@ use App\Filter\Modifier\DateRangeMultiplier;
 use App\Filter\Modifier\EvenItemsMultiplier;
 use App\Filter\Modifier\FixedPriceVoucher;
 use App\Tests\ServiceTestCase;
-use phpDocumentor\Reflection\Types\Void_;
 
 class PriceModifiersTest extends ServiceTestCase
 {
