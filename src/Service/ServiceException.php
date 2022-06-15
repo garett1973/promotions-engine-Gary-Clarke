@@ -2,7 +2,9 @@
 
 namespace App\Service;
 
-class ServiceException
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
+class ServiceException extends HttpException
 {
 
 }
