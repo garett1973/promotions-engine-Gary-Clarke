@@ -43,19 +43,21 @@ class ProductsController extends AbstractController
     )
     : Response
     {
-        if ($request->headers->has('force_fail')) {
-            return new JsonResponse(
-                ['error' => "Promotions Engine failure message"],
-                $request->headers->get('force_fail')
-            );
-        }
+//        throw new \JsonException('Your JSON is invalid'); - just for testing purposes
+
+//        if ($request->headers->has('force_fail')) {
+//            return new JsonResponse(
+//                ['error' => "Promotions Engine failure message"],
+//                $request->headers->get('force_fail')
+//            );
+//        }
 
         $lowestPriceEnquiry = $serializer->deserialize(
             $request->getContent(),
             LowestPriceEnquiry::class, 'json'
         );
 
-        $product = $this->productRepository->find($id); // Add error handling for not found product
+        $product = $this->productRepository->findOrFail($id);
 
         $lowestPriceEnquiry->setProduct($product);
 
